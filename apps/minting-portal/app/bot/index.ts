@@ -216,6 +216,25 @@ bot.onText(/\/transferNFT (.+)/, async (msg, match) => {
   }
 });
 
+// Mint NFT command
+bot.onText(/\/mintNFT (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from!.id;
+  try {
+    const [type, turnstileToken] = match![1].split(' ');
+    if (!['standard', 'premium'].includes(type)) throw new Error('Invalid type: standard or premium');
+    await checkRateLimit(userId, 'mintNFT');
+    const wallet = { publicKey: msg.text }; // Placeholder, replace with actual wallet
+    const collectionId = type === 'standard' ? 0 : 1;
+    const { mint } = type === 'standard' ? await mintNFT(wallet, collectionId, turnstileToken) : await mintPrivateNFT(wallet, collectionId, turnstileToken);
+    await Verification.create({ userId, action: 'mintNFT', mint, result: 'success', private: type === 'premium', timestamp: new Date() });
+    bot.sendMessage(chatId, `🎉 Minted ${type} NFT: ${mint}`);
+  } catch (err: any) {
+    await Verification.create({ userId, action: 'mintNFT', result: 'fail', error: err.message, timestamp: new Date() });
+    bot.sendMessage(chatId, `Error: ${err.message}`);
+  }
+});
+
 // Wallet verification
 bot.on('message', async (msg) => {
   const wallet = msg.text?.trim();

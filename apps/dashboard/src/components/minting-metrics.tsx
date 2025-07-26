@@ -1,70 +1,72 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import mongoose from 'mongoose';
-import Redis from 'ioredis';
+import { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-const redis = new Redis(process.env.REDIS_URL!);
-const db = mongoose.connection.collection('verifications');
+interface Metrics {
+  total: number;
+  premiumPct: number;
+  transfers: number;
+  savings: number;
+  tps: number;
+  staked: number;
+  avgYield: number;
+  activeStakes: number;
+  unstaked: number;
+  yieldTrend: { date: string; yield: number }[];
+  avgStakeDuration: number;
+}
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token' });
+export default function MintingMetrics() {
+  const { publicKey } = useWallet();
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const token = document.querySelector('[data-token]')?.getAttribute('data-token');
 
-  try {
-    const { wallet } = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    if (!(process.env.NEXT_PUBLIC_ADMIN_WALLETS || '').split(',').includes(wallet)) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    const cacheKey = `minting:${wallet}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return res.status(200).json(JSON.parse(cached));
-
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [total, premiumMinted, transfers, staked, avgYield, activeStakes, unstaked, txCount, duration, yieldTrend, avgStakeDuration] = await Promise.all([
-      db.countDocuments({ action: 'mint' }),
-      db.countDocuments({ action: 'mint', private: true }),
-      db.countDocuments({ action: 'transfer' }),
-      db.countDocuments({ action: 'stakeNFT' }),
-      db.find({ action: 'stakeNFT', result: 'success' }).toArray().then(docs => docs.reduce((sum, doc) => sum + (doc.yield || 0), 0) / (docs.length || 1)),
-      db.countDocuments({ action: 'stakeNFT', result: 'success', timestamp: { $gte: sevenDaysAgo } }),
-      db.countDocuments({ action: 'unstakeNFT' }),
-      db.countDocuments({ timestamp: { $gte: new Date(Date.now() - 60 * 60 * 1000) } }),
-      db.find({ timestamp: { $gte: new Date(Date.now() - 60 * 60 * 1000) } }).toArray()
-        .then(docs => docs.length ? (new Date().getTime() - new Date(docs[docs.length - 1].timestamp).getTime()) / 1000 : 0),
-      db.find({ action: 'stakeNFT', result: 'success', timestamp: { $gte: sevenDaysAgo } })
-        .toArray()
-        .then(docs => {
-          const dailyYields: { [key: string]: number[] } = {};
-          docs.forEach(doc => {
-            const date = new Date(doc.timestamp).toISOString().split('T')[0];
-            dailyYields[date] = dailyYields[date] ? [...dailyYields[date], doc.yield] : [doc.yield];
-          });
-          return Object.entries(dailyYields).map(([date, yields]) => ({
-            date,
-            yield: yields.reduce((sum, y) => sum + y, 0) / (yields.length || 1),
-          }));
-        }),
-      db.find({ action: 'stakeNFT', result: 'success' }).toArray().then(docs => docs.reduce((sum, doc) => sum + (doc.duration || 0), 0) / (docs.length || 1)),
-    ]);
-
-    const result = {
-      total,
-      premiumPct: total ? (premiumMinted / total) * 100 : 0,
-      transfers,
-      savings: 99,
-      tps: duration > 0 ? txCount / duration : 0,
-      staked,
-      avgYield,
-      activeStakes,
-      unstaked,
-      yieldTrend,
-      avgStakeDuration,
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (publicKey && token) {
+        const res = await fetch('/api/minting-metrics', { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) setMetrics(await res.json());
+      }
     };
+    fetchMetrics();
+    const id = setInterval(fetchMetrics, 10000);
+    return () => clearInterval(id);
+  }, [publicKey, token]);
 
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', 60);
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  return (
+    <Card className="p-4">
+      <CardHeader>
+        <CardTitle>Minting & Staking Metrics</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {metrics ? (
+          <>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <p>Minted: {metrics.total}</p>
+              <p>Premium: {metrics.premiumPct.toFixed(1)}%</p>
+              <p>Transfers: {metrics.transfers}</p>
+              <p>Savings: {metrics.savings.toFixed(1)}%</p>
+              <p>TPS: {metrics.tps.toFixed(1)}</p>
+              <p>Staked: {metrics.staked}</p>
+              <p>Avg Yield: {metrics.avgYield.toFixed(3)} SOL</p>
+              <p>Active Stakes: {metrics.activeStakes}</p>
+              <p>Unstaked: {metrics.unstaked}</p>
+              <p>Avg Stake Duration: {metrics.avgStakeDuration.toFixed(1)} days</p>
+            </div>
+            <h3 className="mt-4 text-lg">Yield Trend (Last 7 Days)</h3>
+            <LineChart width={500} height={200} data={metrics.yieldTrend}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="yield" stroke="#8884d8" />
+            </LineChart>
+          </>
+        ) : (
+          <p>Loading...</p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }

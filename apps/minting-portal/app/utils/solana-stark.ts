@@ -26,7 +26,7 @@ export async function generateZKSTARK(metadata: any, leafOwner: string, options:
       metadata,
       leafOwner,
       private: options.private ?? false,
-      batchSize: options.batchSize ?? 10,
+      batchSize: options.batchSize ?? 50,
       compress: options.compress ?? true,
     };
 
@@ -42,7 +42,7 @@ export async function generateZKSTARK(metadata: any, leafOwner: string, options:
     const proof: ZKProof = JSON.parse(response.Payload as string);
     if (proof.proof.length > 500) throw new Error('Proof size exceeds 500 bytes');
 
-    await redis.set(cacheKey, JSON.stringify(proof), 'EX', 3600); // Cache for 1hr
+    await redis.set(cacheKey, JSON.stringify(proof), 'EX', 48 * 3600);
     return proof;
   } catch (err) {
     throw new Error(`ZK-STARK generation failed: ${err.message}`);
@@ -72,7 +72,7 @@ export async function verifyZKSTARK(compressedState: any, data: { mint: string; 
     if (response.StatusCode !== 200) throw new Error('Lambda verification failed');
     const isValid: boolean = JSON.parse(response.Payload as string);
 
-    await redis.set(cacheKey, isValid.toString(), 'EX', 3600); // Cache for 1hr
+    await redis.set(cacheKey, isValid.toString(), 'EX', 48 * 3600);
     return isValid;
   } catch (err) {
     console.error(`ZK-STARK verification failed: ${err.message}`);
