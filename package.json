@@ -1,0 +1,23 @@
+{
+  "name": "bark-nft-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The BARK NFT Protocol enables exclusive access to a private Telegram community through the minting of Solana-based NFTs. It includes a Next.js minting portal, a Telegram verification bot, and an Admin Dashboard for analytics and moderation.",
+  "author": "BARK Protocol",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --filter=* run dev",
+    "build": "pnpm --filter=* run build",
+    "start": "pnpm --filter=* start",
+    "lint": "pnpm --filter=* lint"
+  },
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "pnpm": "^10.0.0"
+  }
+}

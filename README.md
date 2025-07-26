@@ -40,10 +40,36 @@ The BARK NFT Protocol enables exclusive access to a private Telegram community t
 
 ## 🔧 Setup Instructions
 
-### 1. Minting Portal
+### Monorepo
+
+Install [pnpm](https://pnpm.io):
 
 ```bash
-cd minting-portal
+npm install -g pnpm
+```
+
+Install all packages:
+
+```bash
+pnpm install
+```
+
+Each package lives in:
+
+```
+/apps/minting-portal
+/apps/telegram-bot
+/apps/dashboard
+```
+
+---
+
+## 📦 App: Minting Portal (`apps/minting-portal`)
+
+### Setup
+
+```bash
+cd apps/minting-portal
 pnpm install
 ```
 
@@ -60,7 +86,7 @@ NEXT_PUBLIC_BARK_PREMIUM_SUPPLY=500
 Run:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Deploy to Vercel:
@@ -69,10 +95,14 @@ Deploy to Vercel:
 vercel --prod
 ```
 
-### 2. Telegram Bot
+---
+
+## 🤖 App: Telegram Bot (`apps/telegram-bot`)
+
+### Setup
 
 ```bash
-cd telegram-bot
+cd apps/telegram-bot
 pnpm install
 ```
 
@@ -90,15 +120,19 @@ MONGODB_URI=<MONGODB_URI>
 Run:
 
 ```bash
-npm start
+pnpm start
 ```
 
 Deploy to Render (set env vars via dashboard).
 
-### 3. Admin Dashboard
+---
+
+## 🧑‍💼 App: Admin Dashboard (`apps/dashboard`)
+
+### Setup
 
 ```bash
-cd dashboard
+cd apps/dashboard
 pnpm install
 ```
 
@@ -129,7 +163,7 @@ vercel --prod
 ## 👥 User Instructions
 
 1. **Mint NFT**: Go to the [minting portal](https://bark-minting-portal.vercel.app), connect your wallet, and mint a Standard or Premium NFT.
-2. **Verify Ownership**: Send your wallet address to the bot [@bark_nft_bot](https://t.me/bark_nft_-bot).
+2. **Verify Ownership**: Send your wallet address to the bot [@BARKNFTBot](https://t.me/BARKNFTBot).
 3. **Join the Community**: If verified, you'll receive a Telegram invite link.
 
 ---
@@ -164,7 +198,7 @@ vercel --prod
 
 ## 📫 Support
 
-Join the BARK community on Telegram @bark_protocol or reach out via [support@barkprotocol.net](mailto:support@barkprotocol.net) for assistance.
+Join the BARK community on Telegram @bark\_protocol or reach out via [support@barkprotocol.net](mailto:support@barkprotocol.net) for assistance.
 
 ---
 
