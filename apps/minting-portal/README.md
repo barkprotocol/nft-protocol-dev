@@ -23,3 +23,6 @@ A **Next.js** application built with **TypeScript**, **Tailwind CSS**, and **sha
 ```bash
 pnpm install
 pnpm run dev
+
+
+npx mocha tests/devnet.test.ts

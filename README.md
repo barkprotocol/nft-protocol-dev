@@ -69,7 +69,7 @@ Each package lives in:
 ### Setup
 
 ```bash
-cd apps/minting-portal
+cd apps/minting-portal ,
 pnpm install
 ```
 

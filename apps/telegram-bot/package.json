@@ -4,10 +4,25 @@
   "description": "A Node.js Telegram bot that verifies Solana wallet ownership of BARK NFTs and provides invite links for community access.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/bot.ts",
+    "build": "tsc",
+    "start": "node dist/bot.js"
   },
   "keywords": [],
   "author": "BARK Protocol",
   "license": "MIT",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.2",
+    "dotenv": "^17.2.1",
+    "mongoose": "^8.16.5",
+    "node-telegram-bot-api": "^0.66.0",
+    "telegraf": "^4.16.3",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node-telegram-bot-api": "^0.64.9",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.0"
+  }
 }

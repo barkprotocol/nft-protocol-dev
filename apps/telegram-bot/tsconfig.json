@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "types": ["node", "node-telegram-bot-api"],
+    "module": "esnext",
+    "target": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
